@@ -1,45 +1,119 @@
-<script setup>
+<script setup lang="ts">
+import {ref} from "vue";
+import { Head, Link, useForm } from '@inertiajs/vue3';
 import GuestLayout from '@/Layouts/GuestLayout.vue';
+import TextInput from '@/Components/TextInput.vue';
 import InputError from '@/Components/InputError.vue';
 import InputLabel from '@/Components/InputLabel.vue';
 import PrimaryButton from '@/Components/PrimaryButton.vue';
-import TextInput from '@/Components/TextInput.vue';
-import { Head, Link, useForm } from '@inertiajs/vue3';
+
+const userData = useForm({
+    first_name: '',
+    second_name: '',
+    last_name: ''
+});
 
 const form = useForm({
-    name: '',
+    id: null,
     email: '',
     password: '',
     password_confirmation: '',
 });
+
+const check_user = ref(true)
 
 const submit = () => {
     form.post(route('register'), {
         onFinish: () => form.reset('password', 'password_confirmation'),
     });
 };
+
+const checkUser = () => {
+
+    axios.post(route('user-check'), userData)
+        .then(function (response) {
+            if( response.data.status ) {
+                form.id = response.data.data.user_id
+                check_user.value = false
+            }
+        })
+        .catch(function (error) {
+            console.log(error);
+        });
+
+}
 </script>
 
 <template>
     <GuestLayout>
         <Head title="Register" />
 
-        <form @submit.prevent="submit">
+        <form v-if="check_user" @submit.prevent="checkUser">
+
             <div>
-                <InputLabel for="name" value="Name" />
+                <InputLabel for="second_name" value="Фамилия" />
 
                 <TextInput
-                    id="name"
+                    id="second_name"
                     type="text"
                     class="mt-1 block w-full"
-                    v-model="form.name"
+                    v-model="userData.second_name"
                     required
                     autofocus
-                    autocomplete="name"
+                    autocomplete="second_name"
                 />
 
-                <InputError class="mt-2" :message="form.errors.name" />
+                <InputError class="mt-2" :message="userData.errors.second_name" />
             </div>
+
+            <div class="mt-4">
+                <InputLabel for="first_name" value="Имя" />
+
+                <TextInput
+                    id="first_name"
+                    type="text"
+                    class="mt-1 block w-full"
+                    v-model="userData.first_name"
+                    required
+                    autocomplete="first_name"
+                />
+
+                <InputError class="mt-2" :message="userData.errors.first_name" />
+            </div>
+
+            <div class="mt-4">
+                <InputLabel for="last_name" value="Отчество" />
+
+                <TextInput
+                    id="last_name"
+                    type="text"
+                    class="mt-1 block w-full"
+                    v-model="userData.last_name"
+                    autocomplete="last_name"
+                />
+
+                <InputError class="mt-2" :message="userData.errors.last_name" />
+            </div>
+
+            <div class="mt-4 flex items-center justify-end">
+                <Link
+                    :href="route('login')"
+                    class="rounded-md text-sm text-gray-600 underline hover:text-gray-900 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2"
+                >
+                    Уже зарегистрированы?
+                </Link>
+
+                <PrimaryButton
+                    class="ms-4"
+                    :class="{ 'opacity-25': userData.processing }"
+                    :disabled="userData.processing"
+                >
+                    Продолжить
+                </PrimaryButton>
+            </div>
+        </form>
+
+        <form v-if="!check_user" @submit.prevent="submit">
 
             <div class="mt-4">
                 <InputLabel for="email" value="Email" />
@@ -57,7 +131,7 @@ const submit = () => {
             </div>
 
             <div class="mt-4">
-                <InputLabel for="password" value="Password" />
+                <InputLabel for="password" value="Пароль" />
 
                 <TextInput
                     id="password"
@@ -74,7 +148,7 @@ const submit = () => {
             <div class="mt-4">
                 <InputLabel
                     for="password_confirmation"
-                    value="Confirm Password"
+                    value="Подтвердите пароль"
                 />
 
                 <TextInput
@@ -97,7 +171,7 @@ const submit = () => {
                     :href="route('login')"
                     class="rounded-md text-sm text-gray-600 underline hover:text-gray-900 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2"
                 >
-                    Already registered?
+                    Уже зарегистрированы?
                 </Link>
 
                 <PrimaryButton
@@ -105,7 +179,7 @@ const submit = () => {
                     :class="{ 'opacity-25': form.processing }"
                     :disabled="form.processing"
                 >
-                    Register
+                    Зарегистрироваться
                 </PrimaryButton>
             </div>
         </form>

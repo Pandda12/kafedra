@@ -1,8 +1,13 @@
 <?php
 
+declare(strict_types=1);
+
 namespace App\Http\Requests\Auth;
 
+use App\Models\AcademicYear;
+use App\Models\User;
 use Illuminate\Auth\Events\Lockout;
+use Illuminate\Contracts\Validation\ValidationRule;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\RateLimiter;
@@ -22,7 +27,7 @@ class LoginRequest extends FormRequest
     /**
      * Get the validation rules that apply to the request.
      *
-     * @return array<string, \Illuminate\Contracts\Validation\ValidationRule|array<mixed>|string>
+     * @return array<string, ValidationRule|array|string>
      */
     public function rules(): array
     {
@@ -35,17 +40,39 @@ class LoginRequest extends FormRequest
     /**
      * Attempt to authenticate the request's credentials.
      *
-     * @throws \Illuminate\Validation\ValidationException
+     * @throws ValidationException
      */
     public function authenticate(): void
     {
         $this->ensureIsNotRateLimited();
 
-        if (! Auth::attempt($this->only('email', 'password'), $this->boolean('remember'))) {
+        if ( !Auth::attempt($this->only('email', 'password'), $this->boolean('remember')) ) {
             RateLimiter::hit($this->throttleKey());
 
             throw ValidationException::withMessages([
-                'email' => trans('auth.failed'),
+                'email' => 'Неверный email или пароль.'
+            ]);
+        }
+
+        $user = User::where('email', $this->string('email')->toString())->first();
+
+        // If the user is found but not active, we block their login.
+        if ( $user && !$user->is_active ) {
+            RateLimiter::hit($this->throttleKey());
+
+            throw ValidationException::withMessages([
+                'email' => 'Ваш аккаунт деактивирован. Обратитесь к администратору.'
+            ]);
+        }
+
+        $activeAcademicYear = AcademicYear::getActiveYear();
+        $isMember = $activeAcademicYear->isUserAssigned($user->id);
+
+        if ( $user && $user->isEmployee() && !$isMember  ) {
+            RateLimiter::hit($this->throttleKey());
+
+            throw ValidationException::withMessages([
+                'email' => 'У вас нет доступа к текущему активному году.'
             ]);
         }
 
@@ -55,11 +82,11 @@ class LoginRequest extends FormRequest
     /**
      * Ensure the login request is not rate limited.
      *
-     * @throws \Illuminate\Validation\ValidationException
+     * @throws ValidationException
      */
     public function ensureIsNotRateLimited(): void
     {
-        if (! RateLimiter::tooManyAttempts($this->throttleKey(), 5)) {
+        if ( !RateLimiter::tooManyAttempts($this->throttleKey(), 5) ) {
             return;
         }
 

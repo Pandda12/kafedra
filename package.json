@@ -18,5 +18,13 @@
         "tailwindcss": "^4.1.14",
         "vite": "^7.0.7",
         "vue": "^3.4.0"
+    },
+    "dependencies": {
+        "apexcharts": "^5.3.5",
+        "chart.js": "^4.5.1",
+        "motion-v": "^1.7.4",
+        "vue-chartjs": "^5.3.2",
+        "vue3-apexcharts": "^1.10.0",
+        "vue3-select-component": "^0.12.3"
     }
 }

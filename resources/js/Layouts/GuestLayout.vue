@@ -1,6 +1,6 @@
-<script setup>
-import ApplicationLogo from '@/Components/ApplicationLogo.vue';
+<script setup lang="ts">
 import { Link } from '@inertiajs/vue3';
+import ApplicationLogo from '@/Components/ApplicationLogo.vue';
 </script>
 
 <template>
@@ -17,6 +17,10 @@ import { Link } from '@inertiajs/vue3';
             class="mt-6 w-full overflow-hidden bg-white px-6 py-4 shadow-md sm:max-w-md sm:rounded-lg"
         >
             <slot />
+        </div>
+        <div class="absolute bottom-0 w-full p-4 text-right">
+            Разработка
+            <a class="underline" target="_blank" href="https://pandda.dev/">PanddaDev</a>
         </div>
     </div>
 </template>

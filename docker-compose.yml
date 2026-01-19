@@ -5,7 +5,7 @@ services:
     build:
       context: .
       dockerfile: _docker/app/Dockerfile
-    container_name: kafenda_app
+    container_name: kafedra_app
     environment:
       - APP_ENV=local
     volumes:
@@ -18,7 +18,7 @@ services:
 
   nginx:
     image: nginx:1.27.5
-    container_name: kafenda_nginx
+    container_name: kafedra_nginx
     volumes:
       - ./:/var/www/
       - ./_docker/nginx/conf.d/:/etc/nginx/conf.d/
@@ -31,7 +31,7 @@ services:
 
   db:
     image: postgres:17.4-alpine
-    container_name: kafenda_db
+    container_name: kafedra_db
     restart: always
     environment:
       - POSTGRES_DB=${DB_DATABASE}
